@@ -1,0 +1,80 @@
+import { AppointmentsService } from './appointments.service';
+export declare class AppointmentsController {
+    private readonly service;
+    constructor(service: AppointmentsService);
+    findAll(): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        clinicId: string | null;
+        notes: string | null;
+        patientId: string;
+        doctorId: string;
+        scheduledAt: Date;
+        durationMinutes: number;
+        status: import(".prisma/client").$Enums.AppointmentStatus;
+        type: string;
+        meetingLink: string | null;
+        cancellationReason: string | null;
+    }[]>;
+    findOne(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        clinicId: string | null;
+        notes: string | null;
+        patientId: string;
+        doctorId: string;
+        scheduledAt: Date;
+        durationMinutes: number;
+        status: import(".prisma/client").$Enums.AppointmentStatus;
+        type: string;
+        meetingLink: string | null;
+        cancellationReason: string | null;
+    } | null>;
+    create(data: any): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        clinicId: string | null;
+        notes: string | null;
+        patientId: string;
+        doctorId: string;
+        scheduledAt: Date;
+        durationMinutes: number;
+        status: import(".prisma/client").$Enums.AppointmentStatus;
+        type: string;
+        meetingLink: string | null;
+        cancellationReason: string | null;
+    }>;
+    update(id: string, data: any): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        clinicId: string | null;
+        notes: string | null;
+        patientId: string;
+        doctorId: string;
+        scheduledAt: Date;
+        durationMinutes: number;
+        status: import(".prisma/client").$Enums.AppointmentStatus;
+        type: string;
+        meetingLink: string | null;
+        cancellationReason: string | null;
+    }>;
+    remove(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        clinicId: string | null;
+        notes: string | null;
+        patientId: string;
+        doctorId: string;
+        scheduledAt: Date;
+        durationMinutes: number;
+        status: import(".prisma/client").$Enums.AppointmentStatus;
+        type: string;
+        meetingLink: string | null;
+        cancellationReason: string | null;
+    }>;
+}

@@ -1,0 +1,85 @@
+import { UsersService } from './users.service';
+export declare class UsersController {
+    private readonly service;
+    constructor(service: UsersService);
+    findAll(): Promise<{
+        id: string;
+        email: string;
+        passwordHash: string;
+        firstName: string;
+        lastName: string;
+        phone: string | null;
+        isActive: boolean;
+        isEmailVerified: boolean;
+        mfaEnabled: boolean;
+        mfaSecret: string | null;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        role: import(".prisma/client").$Enums.Role;
+    }[]>;
+    findOne(id: string): Promise<{
+        id: string;
+        email: string;
+        passwordHash: string;
+        firstName: string;
+        lastName: string;
+        phone: string | null;
+        isActive: boolean;
+        isEmailVerified: boolean;
+        mfaEnabled: boolean;
+        mfaSecret: string | null;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        role: import(".prisma/client").$Enums.Role;
+    } | null>;
+    create(data: any): Promise<{
+        id: string;
+        email: string;
+        passwordHash: string;
+        firstName: string;
+        lastName: string;
+        phone: string | null;
+        isActive: boolean;
+        isEmailVerified: boolean;
+        mfaEnabled: boolean;
+        mfaSecret: string | null;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        role: import(".prisma/client").$Enums.Role;
+    }>;
+    update(id: string, data: any): Promise<{
+        id: string;
+        email: string;
+        passwordHash: string;
+        firstName: string;
+        lastName: string;
+        phone: string | null;
+        isActive: boolean;
+        isEmailVerified: boolean;
+        mfaEnabled: boolean;
+        mfaSecret: string | null;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        role: import(".prisma/client").$Enums.Role;
+    }>;
+    remove(id: string): Promise<{
+        id: string;
+        email: string;
+        passwordHash: string;
+        firstName: string;
+        lastName: string;
+        phone: string | null;
+        isActive: boolean;
+        isEmailVerified: boolean;
+        mfaEnabled: boolean;
+        mfaSecret: string | null;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        role: import(".prisma/client").$Enums.Role;
+    }>;
+}

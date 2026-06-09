@@ -1,0 +1,24 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with: { node-version: 20 }
+    - name: Backend tests
+      run: cd backend && npm ci && npm run test
+    - name: Frontend build
+      run: cd frontend && npm ci && npm run build
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Deploy to production
+      run: echo "Add deployment commands (e.g., kubectl apply, docker push)"

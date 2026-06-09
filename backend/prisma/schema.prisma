@@ -1,0 +1,372 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  NURSE
+  ADMIN
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  MISSED
+}
+
+enum VitalType {
+  BLOOD_PRESSURE
+  HEART_RATE
+  TEMPERATURE
+  OXYGEN_SATURATION
+  BLOOD_SUGAR
+  WEIGHT
+  BMI
+}
+
+model User {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  phone            String?
+  isActive         Boolean        @default(true)
+  isEmailVerified  Boolean        @default(false)
+  mfaEnabled       Boolean        @default(false)
+  mfaSecret        String?
+  lastLoginAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  role             Role
+  refreshTokens    RefreshToken[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  messagesSent     Message[]      @relation("Sender")
+  messagesReceived Message[]      @relation("Receiver")
+  patient          Patient?
+  doctor           Doctor?
+  nurse            Nurse?
+  admin            Admin?
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Patient {
+  id                String           @id @default(cuid())
+  userId            String           @unique
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth       DateTime?
+  bloodGroup        String?
+  allergies         String?
+  chronicDiseases   String?
+  emergencyContact  String?
+  emergencyPhone    String?
+  insuranceProvider String?
+  insuranceNumber   String?
+  medicalRecords    MedicalRecord[]
+  emergencyAlerts   EmergencyAlert[]
+  appointments      Appointment[]
+  prescriptions     Prescription[]
+  vitalSigns        VitalSign[]
+  healthLogs        HealthLog[]
+  urineLogs         UrineLog[]
+  stoolLogs         StoolLog[]
+  moodLogs          MoodLog[]
+  chatMessages      Message[]        @relation("PatientMessages")
+}
+
+model Doctor {
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization  String?
+  licenseNumber   String?
+  yearsExperience Int?
+  consultationFee Decimal?         @map("Decimal")
+  availability    Json?
+  clinicId        String?
+  clinic          Clinic?          @relation(fields: [clinicId], references: [id])
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+  labOrders       LabOrder[]       @relation("DoctorOrders")
+  videoSessions   VideoSession[]   @relation("DoctorSessions")
+  messages        Message[]        @relation("DoctorMessages")
+  MedicalRecord   MedicalRecord[]
+  EmergencyAlert  EmergencyAlert[]
+}
+
+model Nurse {
+  id               String      @id @default(cuid())
+  userId           String      @unique
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qualification    String?
+  assignedClinicId String?
+  clinic           Clinic?     @relation(fields: [assignedClinicId], references: [id])
+  homeVisits       HomeVisit[]
+  vitalsRecord     VitalSign[] @relation("NurseVitals")
+}
+
+model Admin {
+  id          String @id @default(cuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissions Json?
+}
+
+model Clinic {
+  id             String        @id @default(cuid())
+  name           String
+  address        String
+  phone          String
+  email          String
+  registrationNo String?
+  doctors        Doctor[]
+  nurses         Nurse[]
+  appointments   Appointment[]
+}
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  patientId          String
+  patient            Patient           @relation(fields: [patientId], references: [id])
+  doctorId           String
+  doctor             Doctor            @relation(fields: [doctorId], references: [id])
+  clinicId           String?
+  clinic             Clinic?           @relation(fields: [clinicId], references: [id])
+  scheduledAt        DateTime
+  durationMinutes    Int               @default(30)
+  status             AppointmentStatus @default(SCHEDULED)
+  type               String
+  meetingLink        String?
+  cancellationReason String?
+  notes              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  videoSession       VideoSession?
+}
+
+model MedicalRecord {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id])
+  title       String
+  description String?
+  type        String
+  fileUrl     String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Prescription {
+  id        String                 @id @default(cuid())
+  patientId String
+  patient   Patient                @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor                 @relation(fields: [doctorId], references: [id])
+  date      DateTime               @default(now())
+  notes     String?
+  medicines PrescriptionMedicine[]
+}
+
+model PrescriptionMedicine {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medicineName   String
+  dosage         String
+  frequency      String
+  duration       String
+  instructions   String?
+}
+
+model VitalSign {
+  id         String    @id @default(cuid())
+  patientId  String
+  patient    Patient   @relation(fields: [patientId], references: [id])
+  nurseId    String?
+  nurse      Nurse?    @relation("NurseVitals", fields: [nurseId], references: [id])
+  type       VitalType
+  value      String
+  recordedAt DateTime  @default(now())
+  deviceId   String?
+  notes      String?
+}
+
+model HealthLog {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id])
+  date            DateTime @default(now())
+  sleepHours      Float?
+  activityMinutes Int?
+  waterIntake     Int?
+  steps           Int?
+  symptoms        String?
+}
+
+model UrineLog {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id])
+  date         DateTime @default(now())
+  frequency    Int?
+  color        String?
+  pain         Boolean?
+  bloodPresent Boolean?
+  odor         String?
+}
+
+model StoolLog {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id])
+  date            DateTime @default(now())
+  frequency       Int?
+  bristolScale    Int?
+  color           String?
+  bloodPresent    Boolean?
+  digestiveIssues String?
+}
+
+model MoodLog {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  date      DateTime @default(now())
+  mood      String
+  energy    Int?
+  notes     String?
+}
+
+model LabOrder {
+  id          String    @id @default(cuid())
+  patientId   String
+  doctorId    String
+  doctor      Doctor    @relation("DoctorOrders", fields: [doctorId], references: [id])
+  testName    String
+  status      String
+  resultUrl   String?
+  orderedAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model VideoSession {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  doctorId      String
+  doctor        Doctor      @relation("DoctorSessions", fields: [doctorId], references: [id])
+  patientId     String
+  startTime     DateTime
+  endTime       DateTime?
+  status        String
+  recordingUrl  String?
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("Sender", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
+  content    String
+  fileUrl    String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  patientMsg Patient? @relation("PatientMessages", fields: [patientId], references: [id])
+  patientId  String?
+  doctorMsg  Doctor?  @relation("DoctorMessages", fields: [doctorId], references: [id])
+  doctorId   String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+}
+
+model Billing {
+  id          String    @id @default(cuid())
+  patientId   String
+  amount      Decimal   @map("Decimal")
+  currency    String    @default("USD")
+  description String
+  status      String
+  dueDate     DateTime
+  createdAt   DateTime  @default(now())
+  payments    Payment[]
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  billingId     String
+  billing       Billing  @relation(fields: [billingId], references: [id])
+  amount        Decimal  @map("Decimal")
+  method        String
+  transactionId String
+  status        String
+  paidAt        DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+}
+
+model HomeVisit {
+  id          String    @id @default(cuid())
+  nurseId     String
+  nurse       Nurse     @relation(fields: [nurseId], references: [id])
+  patientId   String
+  scheduledAt DateTime
+  status      String
+  notes       String?
+  gpsLocation String?
+  completedAt DateTime?
+}
+
+model EmergencyAlert {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  doctorId  String?
+  doctor    Doctor?  @relation(fields: [doctorId], references: [id])
+  location  String?
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+}
